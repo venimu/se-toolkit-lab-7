@@ -29,7 +29,9 @@ from handlers import (
     handle_scores,
     handle_start,
 )
+from handlers.intent_router import handle_intent
 from services.api_client import LMSAPIClient
+from services.llm_client import LLMClient
 
 
 def parse_command(test_input: str) -> tuple[str, str | None]:
@@ -56,31 +58,41 @@ async def run_test_mode(command: str) -> None:
     # Load config and create API client
     config = load_config()
     client = LMSAPIClient(config.lms_api_base_url, config.lms_api_key)
-    
+    llm_client = LLMClient(
+        config.llm_api_base_url,
+        config.llm_api_key,
+        config.llm_api_model,
+    )
+
     try:
         cmd_name, arg = parse_command(command)
 
-        # Map commands to handlers
-        # Handlers that need client: health, labs, scores
-        # Handlers that don't: start, help
-        if cmd_name == "/start":
-            result = await handle_start()
-        elif cmd_name == "/help":
-            result = await handle_help()
-        elif cmd_name == "/health":
-            result = await handle_health(client)
-        elif cmd_name == "/labs":
-            result = await handle_labs(client)
-        elif cmd_name == "/scores":
-            result = await handle_scores(client, arg)
+        # Check if this is a slash command or plain text
+        if cmd_name.startswith("/"):
+            # Slash command - use direct handlers
+            if cmd_name == "/start":
+                result = await handle_start()
+            elif cmd_name == "/help":
+                result = await handle_help()
+            elif cmd_name == "/health":
+                result = await handle_health(client)
+            elif cmd_name == "/labs":
+                result = await handle_labs(client)
+            elif cmd_name == "/scores":
+                result = await handle_scores(client, arg)
+            else:
+                print(f"Unknown command: {cmd_name}")
+                print("Available commands: /start, /help, /health, /labs, /scores")
+                sys.exit(0)
         else:
-            print(f"Unknown command: {cmd_name}")
-            print("Available commands: /start, /help, /health, /labs, /scores")
-            sys.exit(0)
+            # Plain text - use LLM intent routing
+            # The entire input is the message (not just the first word)
+            result = await handle_intent(command, client, llm_client)
 
         print(result)
     finally:
         await client.close()
+        await llm_client.close()
 
 
 async def run_telegram_mode() -> None:

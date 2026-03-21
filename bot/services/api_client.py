@@ -72,12 +72,106 @@ class LMSAPIClient:
 
     async def check_health(self) -> dict[str, Any]:
         """Check if the backend is healthy.
-        
+
         Returns:
             Health status dictionary with 'status' and 'item_count' keys.
         """
         items = await self.get_items()
         return {"status": "healthy", "item_count": len(items)}
+
+    async def get_learners(self) -> list[dict[str, Any]]:
+        """Fetch all enrolled learners.
+
+        Returns:
+            List of learners.
+        """
+        response = await self._request("GET", "/learners/")
+        response.raise_for_status()
+        return response.json()
+
+    async def get_scores(self, lab: str) -> list[dict[str, Any]]:
+        """Fetch score distribution for a lab.
+
+        Args:
+            lab: The lab identifier.
+
+        Returns:
+            List of score distribution data.
+        """
+        response = await self._request("GET", "/analytics/scores", params={"lab": lab})
+        response.raise_for_status()
+        return response.json()
+
+    async def get_timeline(self, lab: str) -> list[dict[str, Any]]:
+        """Fetch timeline data for a lab.
+
+        Args:
+            lab: The lab identifier.
+
+        Returns:
+            List of timeline data.
+        """
+        response = await self._request("GET", "/analytics/timeline", params={"lab": lab})
+        response.raise_for_status()
+        return response.json()
+
+    async def get_groups(self, lab: str) -> list[dict[str, Any]]:
+        """Fetch per-group data for a lab.
+
+        Args:
+            lab: The lab identifier.
+
+        Returns:
+            List of group data.
+        """
+        response = await self._request("GET", "/analytics/groups", params={"lab": lab})
+        response.raise_for_status()
+        return response.json()
+
+    async def get_top_learners(
+        self,
+        lab: str,
+        limit: int = 5,
+    ) -> list[dict[str, Any]]:
+        """Fetch top learners for a lab.
+
+        Args:
+            lab: The lab identifier.
+            limit: Number of top learners to return.
+
+        Returns:
+            List of top learner data.
+        """
+        response = await self._request(
+            "GET",
+            "/analytics/top-learners",
+            params={"lab": lab, "limit": limit},
+        )
+        response.raise_for_status()
+        return response.json()
+
+    async def get_completion_rate(self, lab: str) -> dict[str, Any]:
+        """Fetch completion rate for a lab.
+
+        Args:
+            lab: The lab identifier.
+
+        Returns:
+            Completion rate data.
+        """
+        response = await self._request("GET", "/analytics/completion-rate", params={"lab": lab})
+        response.raise_for_status()
+        return response.json()
+
+    async def trigger_sync(self) -> dict[str, Any]:
+        """Trigger ETL sync.
+
+        Returns:
+            Sync result data.
+        """
+        response = await self._request("POST", "/pipeline/sync", json={})
+        response.raise_for_status()
+        return response.json()
 
 
 def format_api_error(error: Exception, context: str = "Backend") -> str:
