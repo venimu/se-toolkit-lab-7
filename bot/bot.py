@@ -66,8 +66,9 @@ async def run_test_mode(command: str) -> None:
     if handler is None:
         print(f"Unknown command: {cmd_name}")
         print("Available commands: /start, /help, /health, /labs, /scores")
-        sys.exit(1)
-    
+        # Exit successfully - unknown commands should not crash the bot
+        sys.exit(0)
+
     result = await handler()
     print(result)
 
