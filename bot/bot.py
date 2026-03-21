@@ -21,6 +21,7 @@ from pathlib import Path
 # Add bot directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
 
+from config import load_config
 from handlers import (
     handle_help,
     handle_health,
@@ -28,14 +29,15 @@ from handlers import (
     handle_scores,
     handle_start,
 )
+from services.api_client import LMSAPIClient
 
 
 def parse_command(test_input: str) -> tuple[str, str | None]:
     """Parse a command string into command name and argument.
-    
+
     Args:
         test_input: The command string, e.g., "/scores lab-04"
-    
+
     Returns:
         Tuple of (command_name, argument) where argument may be None.
     """
@@ -47,35 +49,43 @@ def parse_command(test_input: str) -> tuple[str, str | None]:
 
 async def run_test_mode(command: str) -> None:
     """Run a command in test mode and print result to stdout.
-    
+
     Args:
         command: The command string to execute.
     """
-    cmd_name, arg = parse_command(command)
+    # Load config and create API client
+    config = load_config()
+    client = LMSAPIClient(config.lms_api_base_url, config.lms_api_key)
     
-    # Map commands to handlers
-    handlers = {
-        "/start": lambda: handle_start(),
-        "/help": lambda: handle_help(),
-        "/health": lambda: handle_health(),
-        "/labs": lambda: handle_labs(),
-        "/scores": lambda: handle_scores(arg),
-    }
-    
-    handler = handlers.get(cmd_name)
-    if handler is None:
-        print(f"Unknown command: {cmd_name}")
-        print("Available commands: /start, /help, /health, /labs, /scores")
-        # Exit successfully - unknown commands should not crash the bot
-        sys.exit(0)
+    try:
+        cmd_name, arg = parse_command(command)
 
-    result = await handler()
-    print(result)
+        # Map commands to handlers
+        # Handlers that need client: health, labs, scores
+        # Handlers that don't: start, help
+        if cmd_name == "/start":
+            result = await handle_start()
+        elif cmd_name == "/help":
+            result = await handle_help()
+        elif cmd_name == "/health":
+            result = await handle_health(client)
+        elif cmd_name == "/labs":
+            result = await handle_labs(client)
+        elif cmd_name == "/scores":
+            result = await handle_scores(client, arg)
+        else:
+            print(f"Unknown command: {cmd_name}")
+            print("Available commands: /start, /help, /health, /labs, /scores")
+            sys.exit(0)
+
+        print(result)
+    finally:
+        await client.close()
 
 
 async def run_telegram_mode() -> None:
     """Run the bot in production mode, connecting to Telegram.
-    
+
     Task 2: This will initialize aiogram and start polling for updates.
     For now, this is a placeholder.
     """
@@ -101,9 +111,9 @@ Examples:
         metavar="COMMAND",
         help="Run a command in test mode (no Telegram connection)",
     )
-    
+
     args = parser.parse_args()
-    
+
     if args.test:
         # Test mode: call handlers directly
         asyncio.run(run_test_mode(args.test))
