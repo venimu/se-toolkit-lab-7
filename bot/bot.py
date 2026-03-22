@@ -103,7 +103,7 @@ async def run_telegram_mode() -> None:
     """
     print("Telegram mode not yet implemented - will be added in Task 2")
     print("For now, use --test mode to test handlers:")
-    print("  uv run bot.py --test \"/start\"")
+    print('  uv run bot.py --test "/start"')
 
 
 def main() -> None:

@@ -13,7 +13,7 @@ class LMSAPIClient:
 
     def __init__(self, base_url: str, api_key: str):
         """Initialize the API client.
-        
+
         Args:
             base_url: The base URL of the LMS API (e.g., http://localhost:42002).
             api_key: The API key for authentication.
@@ -30,17 +30,19 @@ class LMSAPIClient:
         """Close the HTTP client."""
         await self._client.aclose()
 
-    async def _request(self, method: str, endpoint: str, **kwargs: Any) -> httpx.Response:
+    async def _request(
+        self, method: str, endpoint: str, **kwargs: Any
+    ) -> httpx.Response:
         """Make an HTTP request with error handling.
-        
+
         Args:
             method: HTTP method (GET, POST, etc.).
             endpoint: API endpoint (e.g., "/items/").
             **kwargs: Additional arguments passed to httpx.
-            
+
         Returns:
             The HTTP response.
-            
+
         Raises:
             httpx.RequestError: On connection or request errors.
             httpx.HTTPStatusError: On HTTP error status codes.
@@ -49,7 +51,7 @@ class LMSAPIClient:
 
     async def get_items(self) -> list[dict[str, Any]]:
         """Fetch all items (labs and tasks) from the API.
-        
+
         Returns:
             List of items.
         """
@@ -59,14 +61,16 @@ class LMSAPIClient:
 
     async def get_pass_rates(self, lab: str) -> list[dict[str, Any]]:
         """Fetch pass rates for a specific lab.
-        
+
         Args:
             lab: The lab identifier (e.g., "lab-04").
-            
+
         Returns:
             List of pass rate data.
         """
-        response = await self._request("GET", "/analytics/pass-rates", params={"lab": lab})
+        response = await self._request(
+            "GET", "/analytics/pass-rates", params={"lab": lab}
+        )
         response.raise_for_status()
         return response.json()
 
@@ -111,7 +115,9 @@ class LMSAPIClient:
         Returns:
             List of timeline data.
         """
-        response = await self._request("GET", "/analytics/timeline", params={"lab": lab})
+        response = await self._request(
+            "GET", "/analytics/timeline", params={"lab": lab}
+        )
         response.raise_for_status()
         return response.json()
 
@@ -159,7 +165,9 @@ class LMSAPIClient:
         Returns:
             Completion rate data.
         """
-        response = await self._request("GET", "/analytics/completion-rate", params={"lab": lab})
+        response = await self._request(
+            "GET", "/analytics/completion-rate", params={"lab": lab}
+        )
         response.raise_for_status()
         return response.json()
 
@@ -176,16 +184,16 @@ class LMSAPIClient:
 
 def format_api_error(error: Exception, context: str = "Backend") -> str:
     """Format an API error into a user-friendly message.
-    
+
     This function converts raw exceptions into messages that:
     - Include the actual error (for debugging)
     - Don't show raw tracebacks
     - Aren't vague ("something went wrong")
-    
+
     Args:
         error: The exception that was raised.
         context: The context of the error (e.g., "Backend", "API").
-        
+
     Returns:
         A user-friendly error message string.
     """
