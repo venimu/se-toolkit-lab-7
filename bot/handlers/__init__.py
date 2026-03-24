@@ -14,6 +14,7 @@ from handlers.help import handle_help
 from handlers.labs import handle_labs
 from handlers.scores import handle_scores
 from handlers.start import handle_start
+from handlers.natural_language import handle_natural_language
 
 __all__ = [
     "handle_help",
@@ -21,4 +22,5 @@ __all__ = [
     "handle_labs",
     "handle_scores",
     "handle_start",
+    "handle_natural_language",
 ]
