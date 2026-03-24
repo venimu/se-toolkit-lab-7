@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl *)",
+      "Bash(uv *)",
+      "Bash(source *)",
+      "Bash(python3 *)",
+      "Bash(pkill *)",
+      "Bash(nohup *)",
+      "Bash(sleep *)",
+      "Bash(timeout *)",
+      "Bash(true)",
+      "Bash(rm *)",
+      "Bash(screen *)",
+      "Bash(tee *)",
+      "Bash(time *)"
+    ]
+  }
+}

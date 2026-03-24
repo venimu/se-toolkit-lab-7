@@ -204,7 +204,7 @@ class LLMClient:
                 "Authorization": f"Bearer {self.api_key}",
                 "Content-Type": "application/json",
             },
-            timeout=120.0,  # Increased timeout for multi-step queries
+            timeout=180.0,  # Extended timeout for multi-step LLM queries
         )
 
     async def close(self) -> None:
