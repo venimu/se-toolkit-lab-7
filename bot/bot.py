@@ -167,8 +167,9 @@ async def run_telegram_mode() -> None:
         text, _ = await resolve_message(message.text or "/scores")
         await message.answer(text)
 
-    @dp.callback_query(F.data.startswith("query:"))
+    @dp.callback_query()
     async def on_callback(callback: CallbackQuery) -> None:
+        # Handle inline keyboard button clicks
         query_text = callback_queries.get(callback.data or "", "/help")
         text, show_keyboard = await resolve_message(query_text)
         await callback.answer()
