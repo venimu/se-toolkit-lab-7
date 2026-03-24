@@ -160,9 +160,9 @@ async def run_telegram_mode() -> None:
             response = await handle_intent(user_text, client, llm_client)
             await message.answer(response)
 
-    # Start polling
+    # Start polling with extended timeout for LLM queries
     print("Bot started in Telegram mode. Polling for messages...")
-    await dp.start_polling(bot)
+    await dp.start_polling(bot, poll_timeout=60.0)  # Extended polling timeout
 
     # Cleanup
     await client.close()

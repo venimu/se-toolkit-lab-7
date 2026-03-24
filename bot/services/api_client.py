@@ -23,7 +23,7 @@ class LMSAPIClient:
         self._client = httpx.AsyncClient(
             base_url=self.base_url,
             headers={"Authorization": f"Bearer {self.api_key}"},
-            timeout=10.0,
+            timeout=15.0,  # Extended timeout for backend requests
         )
 
     async def close(self) -> None:
