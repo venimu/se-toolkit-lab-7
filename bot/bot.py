@@ -98,12 +98,76 @@ async def run_test_mode(command: str) -> None:
 async def run_telegram_mode() -> None:
     """Run the bot in production mode, connecting to Telegram.
 
-    Task 2: This will initialize aiogram and start polling for updates.
-    For now, this is a placeholder.
+    This initializes aiogram, registers handlers for slash commands and
+    plain text messages, and starts polling for updates.
     """
-    print("Telegram mode not yet implemented - will be added in Task 2")
-    print("For now, use --test mode to test handlers:")
-    print('  uv run bot.py --test "/start"')
+    from aiogram import Bot, Dispatcher, types
+    from aiogram.filters import Command
+    from config import load_config
+    from handlers import get_inline_keyboard
+
+    config = load_config()
+    bot = Bot(token=config.bot_token)
+    dp = Dispatcher()
+
+    # Create API and LLM clients
+    client = LMSAPIClient(config.lms_api_base_url, config.lms_api_key)
+    llm_client = LLMClient(
+        config.llm_api_base_url,
+        config.llm_api_key,
+        config.llm_api_model,
+    )
+
+    # Register slash command handlers
+    @dp.message(Command("start"))
+    async def cmd_start(message: types.Message) -> None:
+        response = await handle_start()
+        keyboard = get_inline_keyboard()
+        await message.answer(response, reply_markup=keyboard)
+
+    @dp.message(Command("help"))
+    async def cmd_help(message: types.Message) -> None:
+        response = await handle_help()
+        await message.answer(response)
+
+    @dp.message(Command("health"))
+    async def cmd_health(message: types.Message) -> None:
+        response = await handle_health(client)
+        await message.answer(response)
+
+    @dp.message(Command("labs"))
+    async def cmd_labs(message: types.Message) -> None:
+        response = await handle_labs(client)
+        await message.answer(response)
+
+    @dp.message(Command("scores"))
+    async def cmd_scores(message: types.Message) -> None:
+        # Extract lab argument from command
+        lab = message.text.split(maxsplit=1)[1] if len(message.text.split()) > 1 else None
+        response = await handle_scores(client, lab)
+        await message.answer(response)
+
+    @dp.message(Command("sync"))
+    async def cmd_sync(message: types.Message) -> None:
+        response = await handle_intent("sync the data", client, llm_client)
+        await message.answer(response)
+
+    # Handle plain text messages with LLM intent routing
+    @dp.message()
+    async def handle_text(message: types.Message) -> None:
+        user_text = message.text or ""
+        if user_text.strip():
+            response = await handle_intent(user_text, client, llm_client)
+            await message.answer(response)
+
+    # Start polling
+    print("Bot started in Telegram mode. Polling for messages...")
+    await dp.start_polling(bot)
+
+    # Cleanup
+    await client.close()
+    await llm_client.close()
+    await bot.session.close()
 
 
 def main() -> None:
