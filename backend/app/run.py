@@ -17,6 +17,8 @@ def run_server():
         port=settings.port,
         reload=settings.reload,
         reload_dirs=[str(src_dir)],
+        access_log=True,
+        log_level="info",
     )
 
 

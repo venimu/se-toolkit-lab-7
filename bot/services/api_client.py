@@ -23,7 +23,7 @@ class LMSAPIClient:
         self._client = httpx.AsyncClient(
             base_url=self.base_url,
             headers={"Authorization": f"Bearer {self.api_key}"},
-            timeout=10.0,
+            timeout=15.0,  # Extended timeout for backend requests
         )
 
     async def close(self) -> None:
@@ -84,36 +84,36 @@ class LMSAPIClient:
         return {"status": "healthy", "item_count": len(items)}
 
     async def get_learners(self) -> list[dict[str, Any]]:
-        """Fetch all enrolled learners from the API.
+        """Fetch all enrolled learners.
 
         Returns:
-            List of learners with their group assignments.
+            List of learners.
         """
         response = await self._request("GET", "/learners/")
         response.raise_for_status()
         return response.json()
 
     async def get_scores(self, lab: str) -> list[dict[str, Any]]:
-        """Fetch score distribution for a specific lab.
+        """Fetch score distribution for a lab.
 
         Args:
-            lab: The lab identifier (e.g., "lab-04").
+            lab: The lab identifier.
 
         Returns:
-            List of score distribution data (4 buckets).
+            List of score distribution data.
         """
         response = await self._request("GET", "/analytics/scores", params={"lab": lab})
         response.raise_for_status()
         return response.json()
 
     async def get_timeline(self, lab: str) -> list[dict[str, Any]]:
-        """Fetch submission timeline for a specific lab.
+        """Fetch timeline data for a lab.
 
         Args:
-            lab: The lab identifier (e.g., "lab-04").
+            lab: The lab identifier.
 
         Returns:
-            List of timeline data (submissions per day).
+            List of timeline data.
         """
         response = await self._request(
             "GET", "/analytics/timeline", params={"lab": lab}
@@ -122,39 +122,45 @@ class LMSAPIClient:
         return response.json()
 
     async def get_groups(self, lab: str) -> list[dict[str, Any]]:
-        """Fetch per-group scores and student counts for a lab.
+        """Fetch per-group data for a lab.
 
         Args:
-            lab: The lab identifier (e.g., "lab-04").
+            lab: The lab identifier.
 
         Returns:
-            List of group performance data.
+            List of group data.
         """
         response = await self._request("GET", "/analytics/groups", params={"lab": lab})
         response.raise_for_status()
         return response.json()
 
-    async def get_top_learners(self, lab: str, limit: int = 10) -> list[dict[str, Any]]:
-        """Fetch top N learners by score for a lab.
+    async def get_top_learners(
+        self,
+        lab: str,
+        limit: int = 5,
+    ) -> list[dict[str, Any]]:
+        """Fetch top learners for a lab.
 
         Args:
-            lab: The lab identifier (e.g., "lab-04").
+            lab: The lab identifier.
             limit: Number of top learners to return.
 
         Returns:
-            List of top learners with their scores.
+            List of top learner data.
         """
         response = await self._request(
-            "GET", "/analytics/top-learners", params={"lab": lab, "limit": limit}
+            "GET",
+            "/analytics/top-learners",
+            params={"lab": lab, "limit": limit},
         )
         response.raise_for_status()
         return response.json()
 
     async def get_completion_rate(self, lab: str) -> dict[str, Any]:
-        """Fetch completion rate percentage for a lab.
+        """Fetch completion rate for a lab.
 
         Args:
-            lab: The lab identifier (e.g., "lab-04").
+            lab: The lab identifier.
 
         Returns:
             Completion rate data.
@@ -166,12 +172,12 @@ class LMSAPIClient:
         return response.json()
 
     async def trigger_sync(self) -> dict[str, Any]:
-        """Trigger a data sync from the autochecker.
+        """Trigger ETL sync.
 
         Returns:
-            Sync status/result.
+            Sync result data.
         """
-        response = await self._request("POST", "/pipeline/sync")
+        response = await self._request("POST", "/pipeline/sync", json={})
         response.raise_for_status()
         return response.json()
 

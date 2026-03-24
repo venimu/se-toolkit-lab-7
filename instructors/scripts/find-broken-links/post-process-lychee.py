@@ -62,7 +62,9 @@ def find_locations(filepath: str, url: str) -> list[tuple[int, int, str]]:
                 for i, line in enumerate(f, 1):
                     m = pattern.search(line)
                     if m:
-                        results.append((i, m.start() + 1, line[m.start() : m.end()].rstrip()))
+                        results.append(
+                            (i, m.start() + 1, line[m.start() : m.end()].rstrip())
+                        )
         except (OSError, UnicodeDecodeError):
             pass
         return results

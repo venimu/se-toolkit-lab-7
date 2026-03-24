@@ -13,8 +13,7 @@ from handlers.health import handle_health
 from handlers.help import handle_help
 from handlers.labs import handle_labs
 from handlers.scores import handle_scores
-from handlers.start import handle_start
-from handlers.natural_language import handle_natural_language
+from handlers.start import handle_start, get_inline_keyboard, INLINE_KEYBOARD_BUTTONS
 
 __all__ = [
     "handle_help",
@@ -22,5 +21,6 @@ __all__ = [
     "handle_labs",
     "handle_scores",
     "handle_start",
-    "handle_natural_language",
+    "get_inline_keyboard",
+    "INLINE_KEYBOARD_BUTTONS",
 ]
