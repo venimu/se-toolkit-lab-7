@@ -17,7 +17,7 @@ TOOL_DEFINITIONS = [
         "type": "function",
         "function": {
             "name": "get_items",
-            "description": "Get list of all labs and tasks from the LMS",
+            "description": "List all labs and tasks available in the LMS. Use this first when you need to discover lab identifiers such as 'lab-01' before calling analytics tools.",
             "parameters": {
                 "type": "object",
                 "properties": {},
@@ -29,7 +29,7 @@ TOOL_DEFINITIONS = [
         "type": "function",
         "function": {
             "name": "get_learners",
-            "description": "Get list of enrolled students and their groups",
+            "description": "List enrolled learners and their student groups. Use this for questions about enrollment counts, student rosters, or groups.",
             "parameters": {
                 "type": "object",
                 "properties": {},
@@ -41,7 +41,7 @@ TOOL_DEFINITIONS = [
         "type": "function",
         "function": {
             "name": "get_scores",
-            "description": "Get score distribution (4 buckets) for a specific lab",
+            "description": "Get the 4-bucket score distribution for one lab. Use this when the user asks for scores, score histogram, or grade spread for a specific lab.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -58,7 +58,7 @@ TOOL_DEFINITIONS = [
         "type": "function",
         "function": {
             "name": "get_pass_rates",
-            "description": "Get per-task average pass rates and attempt counts for a lab",
+            "description": "Get per-task average scores and attempt counts for one lab. Use this for pass-rate questions and for comparing labs after you discover the lab IDs.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -75,7 +75,7 @@ TOOL_DEFINITIONS = [
         "type": "function",
         "function": {
             "name": "get_timeline",
-            "description": "Get submissions per day timeline for a lab",
+            "description": "Get submissions per day for one lab. Use this for time trends, activity over time, or submission spikes.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -92,7 +92,7 @@ TOOL_DEFINITIONS = [
         "type": "function",
         "function": {
             "name": "get_groups",
-            "description": "Get per-group scores and student counts for a lab",
+            "description": "Get per-group average scores and student counts for one lab. Use this to compare groups or find the best or worst group in a lab.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -109,7 +109,7 @@ TOOL_DEFINITIONS = [
         "type": "function",
         "function": {
             "name": "get_top_learners",
-            "description": "Get top N learners by score for a lab",
+            "description": "Get the top learners for one lab. This tool requires a lab identifier and optionally a limit. If the user asks for top students without naming a lab, ask a clarifying question instead of guessing.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -130,7 +130,7 @@ TOOL_DEFINITIONS = [
         "type": "function",
         "function": {
             "name": "get_completion_rate",
-            "description": "Get completion rate percentage for a lab",
+            "description": "Get the completion rate percentage for one lab, including how many learners passed out of the total.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -147,7 +147,7 @@ TOOL_DEFINITIONS = [
         "type": "function",
         "function": {
             "name": "trigger_sync",
-            "description": "Trigger ETL sync to refresh data from autochecker",
+            "description": "Refresh LMS data from the autochecker. Use this only when the user explicitly asks to sync, refresh, reload, or update the data.",
             "parameters": {
                 "type": "object",
                 "properties": {},
@@ -158,38 +158,30 @@ TOOL_DEFINITIONS = [
 ]
 
 # System prompt that encourages tool use
-SYSTEM_PROMPT = """You are an assistant for a Learning Management System (LMS). You have access to tools that let you query data about labs, students, scores, and analytics.
+SYSTEM_PROMPT = """You are an LMS analytics assistant with access to backend tools.
 
-When a user asks a question:
-1. Think about what data you need to answer
-2. Call the appropriate tool(s) to get that data
-3. Once you have the data, summarize it clearly for the user with specific numbers and names
+Your job is to answer the user's question by choosing tools, reading their results, and then writing a grounded answer.
 
-If the user's message is a greeting (hello, hi, hey), respond naturally and mention what you can help with - list available commands like /labs, /scores, /health.
+Rules:
+1. If the question is about labs, learners, scores, pass rates, groups, completion, timeline, or sync, use tools instead of answering from memory.
+2. Do not invent lab IDs, percentages, counts, or names. If you need data, call a tool.
+3. If the request is ambiguous but still data-oriented, ask one short clarifying question.
+4. If the message is a greeting, respond briefly and mention that the user can ask about labs, scores, pass rates, learners, groups, or sync.
+5. If the message is gibberish or not understandable, say that you did not understand and give a few concrete examples of what the user can ask.
+6. If the user explicitly asks to sync or refresh data, call trigger_sync.
 
-If the user types gibberish or something you don't understand (like "asdfgh"), say you didn't understand and suggest what commands they can try - mention available commands and that they can ask about labs, scores, or pass rates.
+Tool usage guidance:
+- Use get_items first whenever you need to discover valid lab identifiers.
+- All analytics tools except get_items, get_learners, and trigger_sync require a specific lab ID.
+- If the user says "lab 4", treat that as ambiguous and ask what they want to know about lab 4.
+- If the user asks for top learners without naming a lab, ask which lab they mean.
+- For comparisons across labs, first call get_items, then call the needed analytics tool for each relevant lab, then compare the returned numbers.
 
-If the user asks to sync, refresh, load, or update data, call the trigger_sync tool and report that the sync was successful and data has been loaded/refreshed.
-
-Available tools:
-- get_items: List all labs and tasks - use this to discover what labs exist
-- get_learners: List enrolled students and groups
-- get_scores: Score distribution for a lab (4 buckets)
-- get_pass_rates: Per-task average pass rates and attempt counts for a lab
-- get_timeline: Submissions per day timeline for a lab
-- get_groups: Per-group scores and student counts for a lab
-- get_top_learners: Top N learners by score for a lab
-- get_completion_rate: Completion rate percentage for a lab
-- trigger_sync: Trigger ETL sync to refresh data from autochecker - call this when user asks to sync, refresh, load, or update data
-
-Always use tools when the user asks about labs, scores, students, or analytics. Be specific - include actual lab names, numbers, and percentages from the data. When comparing labs, always fetch the data first using get_items to get lab IDs, then call the appropriate analytics tools.
-
-For "which lab has the lowest/highest pass rate" type questions:
-1. First call get_items to get all lab identifiers
-2. Then call get_pass_rates for each lab
-3. Compare the results and report the specific lab name with its percentage
-
-Be helpful and specific. Always ground your answers in the actual data returned by the tools."""
+Answer style:
+- Be concise but specific.
+- Prefer actual numbers, counts, and lab names from tool results.
+- After tool calls finish, synthesize the data instead of dumping raw JSON.
+"""
 
 
 class LLMClient:
