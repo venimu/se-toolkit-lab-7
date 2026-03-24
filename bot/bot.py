@@ -75,7 +75,8 @@ async def run_test_mode(command: str) -> None:
         cmd_name, arg = parse_command(command)
 
         # Check if this is a slash command or plain text
-        if cmd_name.startswith("/"):
+        # Slash commands start with / - route directly to handlers
+        if cmd_name[:1] == "/":
             # Slash command - use direct handlers
             if cmd_name == "/start":
                 result = await handle_start()
