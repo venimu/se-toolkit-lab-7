@@ -1,9 +1,6 @@
-FROM python:3.14.2-slim
+FROM ghcr.io/astral-sh/uv:python3.14-bookworm-slim
 
 WORKDIR /app
-
-# Install uv
-RUN pip install --no-cache-dir uv
 
 # Copy pyproject.toml for dependency installation
 COPY pyproject.toml ./
