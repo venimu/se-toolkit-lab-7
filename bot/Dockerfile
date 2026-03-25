@@ -49,4 +49,4 @@ USER nonroot
 
 WORKDIR /app
 
-CMD ["bot.py"]
+CMD ["python", "bot/bot.py"]
