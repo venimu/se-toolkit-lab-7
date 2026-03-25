@@ -5,14 +5,13 @@ WORKDIR /app
 
 # Copy pyproject.toml and uv.lock from project root for dependency installation
 COPY pyproject.toml uv.lock ./
-COPY bot/pyproject.toml ./bot/
 
 # Install dependencies
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen
 
 # Copy the rest of the bot code
-COPY bot .
+COPY . .
 
 # Run the bot
 CMD ["uv", "run", "bot.py"]
