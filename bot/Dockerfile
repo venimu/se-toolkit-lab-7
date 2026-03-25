@@ -10,8 +10,8 @@ COPY pyproject.toml uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen
 
-# Copy the rest of the bot code
-COPY . .
+# Copy the bot directory
+COPY bot .
 
 # Run the bot
 CMD ["uv", "run", "bot.py"]
