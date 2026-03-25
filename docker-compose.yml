@@ -98,6 +98,9 @@ services:
     restart: unless-stopped
     networks:
       - lms-network
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     environment:
       - BOT_TOKEN=${BOT_TOKEN:?'BOT_TOKEN is required'}
       - LMS_API_BASE_URL=http://backend:8000
