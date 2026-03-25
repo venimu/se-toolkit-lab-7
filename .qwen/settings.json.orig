@@ -15,6 +15,5 @@
       "Bash(tee *)",
       "Bash(time *)"
     ]
-  },
-  "$version": 3
+  }
 }
