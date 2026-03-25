@@ -42,8 +42,11 @@ RUN groupadd --system --gid 999 nonroot \
 
 COPY --from=builder --chown=nonroot:nonroot /app /app
 
+# Place executables in the environment at the front of the path
+ENV PATH="/app/.venv/bin:$PATH"
+
 USER nonroot
 
 WORKDIR /app
 
-CMD ["uv", "run", "--project", "bot", "bot.py"]
+CMD ["bot.py"]
