@@ -91,3 +91,62 @@ By the end of this lab, you should be able to say:
 2. [Backend Integration](./lab/tasks/required/task-2.md) — P0: slash commands + real data
 3. [Intent-Based Natural Language Routing](./lab/tasks/required/task-3.md) — P1: LLM tool use
 4. [Containerize and Document](./lab/tasks/required/task-4.md) — P3: containerize + deploy
+
+## Deploy
+
+### Prerequisites
+
+Ensure the following environment variables are set in `.env.docker.secret`:
+
+- `BOT_TOKEN` — Telegram bot token
+- `LMS_API_KEY` — Backend API key
+- `LLM_API_KEY` — LLM API key
+- `LLM_API_BASE_URL` — LLM API base URL (use `http://host.docker.internal:8080` to reach the qwen proxy on the host)
+- `LLM_API_MODEL` — LLM model name (e.g., `coder-model`)
+
+### Build and start
+
+On your VM:
+
+```bash
+cd ~/se-toolkit-lab-7
+
+# Stop any running bot process (if migrating from nohup)
+pkill -f "bot.py" 2>/dev/null
+
+# Build and start all services
+docker compose --env-file .env.docker.secret up --build -d
+
+# Check status
+docker compose --env-file .env.docker.secret ps
+```
+
+You should see the `bot` service running alongside `backend`, `postgres`, `caddy`.
+
+### Verify deployment
+
+```bash
+# Check bot logs
+docker compose --env-file .env.docker.secret logs bot --tail 20
+
+# Test backend health
+curl -sf http://localhost:42002/docs
+```
+
+### Test in Telegram
+
+Send these commands to your bot:
+
+1. `/start` — welcome message
+2. `/help` — list of commands
+3. `/health` — backend status
+4. "what labs are available?" — natural language query
+
+### Troubleshooting
+
+| Symptom | Likely cause |
+|---------|--------------|
+| Bot container restarting | Check logs for missing env vars or import errors |
+| `/health` fails | Ensure `LMS_API_BASE_URL=http://backend:8000` (not localhost) |
+| LLM queries fail | `LLM_API_BASE_URL` must use `host.docker.internal`, not `localhost` |
+| "BOT_TOKEN is required" | Add bot env vars to `.env.docker.secret`, not just `.env.bot.secret` |
